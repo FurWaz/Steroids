@@ -20,16 +20,21 @@ void Window::init()
 	this->player = new Player(sf::Vector2f(640, 360), 500.f, 0.f, 50.f);
 	this->enemyTimeout = 0;
 	this->shakeAmount = 0;
+	this->score = 0;
 
-	if (this->shader.loadFromFile("./Glare.glsl", sf::Shader::Fragment))
+	if (!this->shader.loadFromFile("./Glare.glsl", sf::Shader::Fragment))
 	{
-		std::cout << "binding glare shader" << std::endl;
+		std::cout << "Error: failed to load shader" << std::endl;
 		sf::Shader::bind(&this->shader);
 	}
+
+	if (!font.loadFromFile("upheavtt.ttf"))
+		std::cout << "Error: failed to load font" << std::endl;
 }
 
 void Window::addRandomEnemy()
 {
+	if (this->enemies.size() > 200) return;
 	sf::Vector2f pos(
 		std::rand() % this->win.getSize().x,
 		std::rand() % this->win.getSize().y
@@ -65,6 +70,7 @@ void Window::render()
 	this->lastTime = newTime;
 	if (this->dt > 1000) this->dt = 0;
 
+	this->shader.setUniform("multiply", this->shakeAmount*0.05f+0.3f);
 	this->enemyTimeout += this->dt;
 	if (this->enemyTimeout > 1)
 	{
@@ -76,6 +82,7 @@ void Window::render()
 	rs.shader = &this->shader;
 
 	// render
+	this->win.clear(sf::Color::Black);
 	this->renderTex.clear(sf::Color::Black);
 	for (int i = 0; i < this->player->bullets.size(); i++)
 	{
@@ -94,16 +101,20 @@ void Window::render()
 		Enemy* en = this->enemies.at(i);
 		en->setPlayerPos(this->player->getPos());
 		en->update(this->dt);
-		if (this->player->collides(en));
-			//this->win.close();
+		if (this->player->collides(en))
+			this->kickPlayer();
 		this->renderTex.draw(en->draw(this->dt));
 		for (int j = 0; j < this->player->bullets.size(); j++)
 		{
-			if (this->player->bullets.at(j)->collides(en))
+			Bullet* b = this->player->bullets.at(j);
+			if (b->collides(en))
 			{
 				this->enemies.erase(this->enemies.begin() + i);
+				this->player->bullets.erase(this->player->bullets.begin() + j);
 				this->shake();
 				delete en;
+				delete b;
+				score++;
 				continue;
 			}
 		}
@@ -112,17 +123,59 @@ void Window::render()
 	this->renderTex.draw(this->player->draw(this->dt));
 	this->renderTex.display();
 
+	// UI stuff (text and life bars)
+	sf::Text scoreText(
+		"score: "+std::to_string(this->score),
+		this->font, 30
+	);
+	scoreText.setPosition(sf::Vector2f(10, 10));
+
+	sf::RectangleShape playerLife;
+	playerLife.setSize(sf::Vector2f(60, 4));
+	playerLife.setOrigin(sf::Vector2f(30, 2));
+	playerLife.setPosition(
+		this->player->getPos().x,
+		this->player->getPos().y - this->player->getSize()
+	);
+	playerLife.setOutlineColor(sf::Color::White);
+	playerLife.setFillColor(sf::Color::Transparent);
+	playerLife.setOutlineThickness(2);
+	sf::RectangleShape playerBar;
+	playerBar.setSize(sf::Vector2f(this->player->getLife()*0.6f, 4));
+	playerBar.setOrigin(sf::Vector2f(0, 2));
+	playerBar.setPosition(
+		this->player->getPos().x-30,
+		this->player->getPos().y - this->player->getSize()
+	);
+	playerBar.setFillColor(sf::Color::White);
+
+	// camera movements (shake and zoom)
 	sf::Sprite sprite(this->renderTex.getTexture());
+	sprite.setOrigin(sf::Vector2f(
+		this->win.getSize().x * 0.5f,
+		this->win.getSize().y * 0.5f
+	));
+	sprite.setPosition(sf::Vector2f(
+		this->win.getSize().x * 0.5f,
+		this->win.getSize().y * 0.5f
+	));
 	if (this->shakeAmount > 1)
 	{
 		this->shakeAmount--;
 		sprite.setPosition(
-			std::rand() % (int)this->shakeAmount,
-			std::rand() % (int)this->shakeAmount
+			this->win.getSize().x * 0.5f + std::rand() % (int)(this->shakeAmount) - this->shakeAmount * 0.5f,
+			this->win.getSize().y * 0.5f + std::rand() % (int)(this->shakeAmount) - this->shakeAmount * 0.5f
 		);
 	}
+	sprite.setScale(sf::Vector2f(
+		1.f + this->shakeAmount * 0.001f,
+		1.f + this->shakeAmount * 0.001f
+	));
 
 	this->win.draw(sprite, rs);
+	this->win.draw(scoreText);
+	this->win.draw(playerLife);
+	this->win.draw(playerBar);
 	this->win.display();
 }
 
@@ -185,4 +238,11 @@ void Window::registerKey(int code, bool state)
 		break;
 	}
 	this->player->setKeys(this->keys);
+}
+
+void Window::kickPlayer()
+{
+	this->player->setLife(this->player->getLife()-1);
+	if (this->player->getLife() == 0)
+		this->win.close();
 }

@@ -59,3 +59,12 @@ void Player::shoot()
 {
 	this->bullets.push_back(new Bullet(this->pos+this->dir*(this->size / 2), sf::Vector2f(), 350.f, this->direction, 10.f));
 }
+
+void Player::setLife(int life)
+{
+	this->life = life;
+}
+int Player::getLife()
+{
+	return this->life;
+}

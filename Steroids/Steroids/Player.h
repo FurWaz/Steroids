@@ -7,6 +7,7 @@ class Player : public Entity
 {
 private:
 	sf::Vector2i mPos;
+	int life = 100;
 	bool keys[4] = { false, false, false, false };
 
 public:
@@ -21,4 +22,7 @@ public:
 	void update(float dt);
 	sf::Sprite draw(float dt);
 	void shoot();
+
+	void setLife(int life);
+	int getLife();
 };

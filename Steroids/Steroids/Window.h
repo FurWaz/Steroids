@@ -17,6 +17,10 @@ private:
 	sf::RenderTexture renderTex;
 	std::vector<Enemy*> enemies;
 
+	sf::Font font;
+
+	int score;
+
 	bool keys[4] = { false, false, false, false };
 	void init();
 	void addRandomEnemy();
@@ -34,4 +38,5 @@ public:
 	void render();
 	void getEvents();
 	void registerKey(int code, bool state);
+	void kickPlayer();
 };
