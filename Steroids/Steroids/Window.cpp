@@ -8,19 +8,26 @@ Window::Window()
 Window::Window(sf::Vector2u size, std::string name)
 {
 	this->init();
-	this->setSize(size);
+	if (size.x != 0 && size.y != 0) this->setSize(size);
 	this->setName(name);
 }
 
 void Window::init()
 {
-	this->win.create(sf::VideoMode(1280, 720), "Window");
-	this->renderTex.create(1280, 720);
+	sf::ContextSettings cs;
+	cs.antialiasingLevel = 8;
+	sf::VideoMode mode = sf::VideoMode::getFullscreenModes().at(0);
+	this->win.create(mode, "Window", sf::Style::Fullscreen);
 	this->win.setVerticalSyncEnabled(true);
-	this->player = new Player(sf::Vector2f(640, 360), 500.f, 0.f, 50.f);
+	this->renderTex.create(this->win.getSize().x, this->win.getSize().y);
+	this->player = new Player(
+		sf::Vector2f(this->win.getSize().x/2, this->win.getSize().y/2),
+		550.f, 0.f, 50.f
+	);
 	this->enemyTimeout = 0;
 	this->shakeAmount = 0;
 	this->score = 0;
+	this->shootTimeout = 0;
 
 	if (!this->shader.loadFromFile("./Glare.glsl", sf::Shader::Fragment))
 	{
@@ -63,14 +70,13 @@ void Window::close()
 	this->win.close();
 }
 
-void Window::render()
+void Window::update()
 {
 	std::chrono::steady_clock::time_point newTime = std::chrono::steady_clock::now();
-	this->dt = std::chrono::duration_cast<std::chrono::microseconds>(newTime-lastTime).count() / 1000000.f;
+	this->dt = std::chrono::duration_cast<std::chrono::microseconds>(newTime - lastTime).count() / 1000000.f;
 	this->lastTime = newTime;
-	if (this->dt > 1000) this->dt = 0;
+	if (this->dt > 1000) this->dt = 1;
 
-	this->shader.setUniform("multiply", this->shakeAmount*0.05f+0.3f);
 	this->enemyTimeout += this->dt;
 	if (this->enemyTimeout > 1)
 	{
@@ -78,21 +84,21 @@ void Window::render()
 		addRandomEnemy();
 	}
 
-	sf::RenderStates rs;
-	rs.shader = &this->shader;
+	this->shootTimeout += this->dt;
+	if (this->shootTimeout > 0.2f && this->shootPressed)
+	{
+		this->shootTimeout = 0;
+		this->player->shoot();
+	}
 
-	// render
-	this->win.clear(sf::Color::Black);
-	this->renderTex.clear(sf::Color::Black);
 	for (int i = 0; i < this->player->bullets.size(); i++)
 	{
 		Bullet* b = this->player->bullets[i];
 		b->update(this->dt);
-		this->renderTex.draw(b->draw(this->dt));
 		sf::Vector2f pos = b->getPos();
 		if (pos.x < 0 || pos.x > this->win.getSize().x || pos.y < 0 || pos.y > this->win.getSize().y)
 		{
-			this->player->bullets.erase(this->player->bullets.begin()+i);
+			this->player->bullets.erase(this->player->bullets.begin() + i);
 			delete b;
 		}
 	}
@@ -103,7 +109,6 @@ void Window::render()
 		en->update(this->dt);
 		if (this->player->collides(en))
 			this->kickPlayer();
-		this->renderTex.draw(en->draw(this->dt));
 		for (int j = 0; j < this->player->bullets.size(); j++)
 		{
 			Bullet* b = this->player->bullets.at(j);
@@ -120,6 +125,19 @@ void Window::render()
 		}
 	}
 	this->player->update(this->dt);
+}
+
+void Window::render()
+{
+	sf::RenderStates rs;
+	rs.shader = &this->shader;
+	this->win.clear(sf::Color::Black);
+	this->renderTex.clear(sf::Color::Black);
+
+	for (int i = 0; i < this->player->bullets.size(); i++)
+		this->renderTex.draw(this->player->bullets[i]->draw(this->dt));
+	for (int i =0; i < this->enemies.size(); i++)
+		this->renderTex.draw(this->enemies[i]->draw(this->dt));
 	this->renderTex.draw(this->player->draw(this->dt));
 	this->renderTex.display();
 
@@ -129,25 +147,36 @@ void Window::render()
 		this->font, 30
 	);
 	scoreText.setPosition(sf::Vector2f(10, 10));
+	/*
+	this->lastFPS += ((1.f / this->dt) - this->lastFPS) * 0.02;
+	sf::Text fpsText(
+		"FPS: " + std::to_string((int)this->lastFPS),
+		this->font, 30
+	);
+	fpsText.setPosition(sf::Vector2f(200, 10));
+	*/
 
 	sf::RectangleShape playerLife;
 	playerLife.setSize(sf::Vector2f(60, 4));
 	playerLife.setOrigin(sf::Vector2f(30, 2));
+	playerLife.setOutlineColor(sf::Color::White);
+	playerLife.setFillColor(sf::Color::Transparent);
+	playerLife.setOutlineThickness(2);
 	playerLife.setPosition(
 		this->player->getPos().x,
 		this->player->getPos().y - this->player->getSize()
 	);
-	playerLife.setOutlineColor(sf::Color::White);
-	playerLife.setFillColor(sf::Color::Transparent);
-	playerLife.setOutlineThickness(2);
 	sf::RectangleShape playerBar;
-	playerBar.setSize(sf::Vector2f(this->player->getLife()*0.6f, 4));
 	playerBar.setOrigin(sf::Vector2f(0, 2));
+	playerBar.setFillColor(sf::Color::White);
+	playerBar.setSize(sf::Vector2f(this->player->getLife()*60/this->player->getMaxLife(), 4));
 	playerBar.setPosition(
 		this->player->getPos().x-30,
 		this->player->getPos().y - this->player->getSize()
 	);
-	playerBar.setFillColor(sf::Color::White);
+	this->renderTex.draw(scoreText);
+	this->renderTex.draw(playerLife);
+	this->renderTex.draw(playerBar);
 
 	// camera movements (shake and zoom)
 	sf::Sprite sprite(this->renderTex.getTexture());
@@ -172,10 +201,9 @@ void Window::render()
 		1.f + this->shakeAmount * 0.001f
 	));
 
+	this->shader.setUniform("multiply", this->shakeAmount * 0.03f + 1.1f);
 	this->win.draw(sprite, rs);
-	this->win.draw(scoreText);
-	this->win.draw(playerLife);
-	this->win.draw(playerBar);
+	//this->win.draw(fpsText);
 	this->win.display();
 }
 
@@ -204,7 +232,10 @@ void Window::getEvents()
 			this->registerKey(ev.key.code, false);
 			break;
 		case sf::Event::MouseButtonPressed:
-			this->player->shoot();
+			this->shootPressed = true;
+			break;
+		case sf::Event::MouseButtonReleased:
+			this->shootPressed = false;
 			break;
 		default:
 			break;

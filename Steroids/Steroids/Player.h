@@ -7,8 +7,10 @@ class Player : public Entity
 {
 private:
 	sf::Vector2i mPos;
-	int life = 100;
+	int maxLife = 400;
+	int life = this->maxLife;
 	bool keys[4] = { false, false, false, false };
+	sf::ConvexShape shape;
 
 public:
 	std::vector<Bullet*> bullets;
@@ -25,4 +27,5 @@ public:
 
 	void setLife(int life);
 	int getLife();
+	int getMaxLife();
 };

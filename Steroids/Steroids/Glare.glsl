@@ -2,9 +2,9 @@
 
 uniform sampler2D texture;
 float threshold = 0.1;
-float texture_inverse = 0.002;
+float texture_inverse = 0.003;
 uniform float multiply = 0.3;
-int blur_radius = 5;
+int blur_radius = 4;
 
 void main() {
     vec3 current_color = texture2D(texture, gl_TexCoord[0].xy).rgb;
@@ -25,5 +25,5 @@ void main() {
         sum += texture2D(texture, gl_TexCoord[0].xy + (i * texture_inverse) * vec2(-0.7, 0.7));
         sum += texture2D(texture, gl_TexCoord[0].xy - (i * texture_inverse) * vec2(-0.7, 0.7));
     }
-    gl_FragColor = sum * multiply / (blur_radius * 2 + 1);
+    gl_FragColor = sum * multiply / (blur_radius * 8 + 1);
 }

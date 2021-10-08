@@ -2,12 +2,22 @@
 
 Player::Player(): Entity()
 {
-
+	this->shape = sf::ConvexShape(4);
+	this->shape.setPoint(0, sf::Vector2f(0, this->size));
+	this->shape.setPoint(1, sf::Vector2f(this->size / 2, 0));
+	this->shape.setPoint(2, sf::Vector2f(this->size, this->size));
+	this->shape.setPoint(3, sf::Vector2f(this->size / 2, this->size / 2));
+	this->shape.setFillColor(sf::Color::Blue);
 }
 
 Player::Player(sf::Vector2f pos, float speed, float direction, float size): Entity(pos, speed, direction, size)
 {
-	
+	this->shape = sf::ConvexShape(4);
+	this->shape.setPoint(0, sf::Vector2f(0, this->size));
+	this->shape.setPoint(1, sf::Vector2f(this->size / 2, 0));
+	this->shape.setPoint(2, sf::Vector2f(this->size, this->size));
+	this->shape.setPoint(3, sf::Vector2f(this->size / 2, this->size / 2));
+	this->shape.setFillColor(sf::Color::Blue);
 }
 
 void Player::setMousePos(sf::Vector2i mPos)
@@ -43,13 +53,7 @@ void Player::update(float dt)
 sf::Sprite Player::draw(float dt)
 {
 	this->renderTex.clear(sf::Color::Transparent);
-	sf::ConvexShape shape(4);
-	shape.setPoint(0, sf::Vector2f(0, this->size));
-	shape.setPoint(1, sf::Vector2f(this->size/2, 0));
-	shape.setPoint(2, sf::Vector2f(this->size, this->size));
-	shape.setPoint(3, sf::Vector2f(this->size / 2, this->size/2));
-	shape.setFillColor(sf::Color::Blue);
-	this->renderTex.draw(shape);
+	this->renderTex.draw(this->shape);
 	this->sprite.setPosition(this->pos);
 	this->sprite.setRotation((this->direction * 180.f) / 3.1415926f);
 	return this->sprite;
@@ -64,7 +68,13 @@ void Player::setLife(int life)
 {
 	this->life = life;
 }
+
 int Player::getLife()
 {
 	return this->life;
+}
+
+int Player::getMaxLife()
+{
+	return this->maxLife;
 }

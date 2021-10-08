@@ -3,6 +3,8 @@
 
 class Bullet : public Entity
 {
+private:
+	sf::CircleShape circle;
 public:
 	Bullet();
 	Bullet(sf::Vector2f pos, sf::Vector2f vel = sf::Vector2f(), float speed = 1, float direction = 0, float size = 1);
