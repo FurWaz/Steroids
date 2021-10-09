@@ -23,9 +23,6 @@ void Enemy::update(float dt)
 	) - 1.5707963);
 
 	this->tarVel = this->dir;
-	// normalize movements
-	float length = std::sqrt(this->tarVel.x * this->tarVel.x + this->tarVel.y * this->tarVel.y);
-	if (length != 0) this->tarVel /= length;
 	this->tarVel *= this->speed;
 	this->curVel += (this->tarVel - this->curVel) * (dt / this->smoothness);
 	this->pos += this->curVel * dt;

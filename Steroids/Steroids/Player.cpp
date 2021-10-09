@@ -48,19 +48,21 @@ void Player::update(float dt)
 	this->tarVel *= this->speed;
 	this->curVel += (this->tarVel - this->curVel) * ( dt / this->smoothness);
 	this->pos += this->curVel * dt;
+	if (this->shootDelta > 0) this->shootDelta--;
 }
 
 sf::Sprite Player::draw(float dt)
 {
 	this->renderTex.clear(sf::Color::Transparent);
 	this->renderTex.draw(this->shape);
-	this->sprite.setPosition(this->pos);
+	this->sprite.setPosition(this->pos - this->dir*this->shootDelta);
 	this->sprite.setRotation((this->direction * 180.f) / 3.1415926f);
 	return this->sprite;
 }
 
 void Player::shoot()
 {
+	this->shootDelta = 10;
 	this->bullets.push_back(new Bullet(this->pos+this->dir*(this->size / 2), sf::Vector2f(), 350.f, this->direction, 10.f));
 }
 
@@ -77,4 +79,9 @@ int Player::getLife()
 int Player::getMaxLife()
 {
 	return this->maxLife;
+}
+
+void Player::kick(int force)
+{
+	this->life -= force;
 }

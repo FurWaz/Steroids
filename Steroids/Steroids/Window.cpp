@@ -2,28 +2,21 @@
 
 Window::Window()
 {
-	this->init();
+	this->init(sf::Vector2u(), "Steroids");
 }
 
 Window::Window(sf::Vector2u size, std::string name)
 {
-	this->init();
-	if (size.x != 0 && size.y != 0) this->setSize(size);
-	this->setName(name);
+	this->init(size, name);
 }
 
-void Window::init()
+void Window::init(sf::Vector2u size, std::string name)
 {
+	if (size.x != 0 && size.y != 0) this->setSize(size);
+	this->setName(name);
 	sf::ContextSettings cs;
 	cs.antialiasingLevel = 8;
-	sf::VideoMode mode = sf::VideoMode::getFullscreenModes().at(0);
-	this->win.create(mode, "Window", sf::Style::Fullscreen);
 	this->win.setVerticalSyncEnabled(true);
-	this->renderTex.create(this->win.getSize().x, this->win.getSize().y);
-	this->player = new Player(
-		sf::Vector2f(this->win.getSize().x/2, this->win.getSize().y/2),
-		550.f, 0.f, 50.f
-	);
 	this->enemyTimeout = 0;
 	this->shakeAmount = 0;
 	this->score = 0;
@@ -42,21 +35,35 @@ void Window::init()
 void Window::addRandomEnemy()
 {
 	if (this->enemies.size() > 200) return;
-	sf::Vector2f pos(
-		std::rand() % this->win.getSize().x,
-		std::rand() % this->win.getSize().y
-	);
+	sf::Vector2f pos;
+	if (std::rand() % 2)
+		pos = sf::Vector2f(
+			std::rand() % this->win.getSize().x,
+			std::rand() % 2 ? 0 : this->win.getSize().y
+		);
+	else 
+		pos = sf::Vector2f(
+			std::rand() % 2 ? 0 : this->win.getSize().x,
+			std::rand() % this->win.getSize().y
+		);
 	this->enemies.push_back(new Enemy(pos, 300.f, 0.f, 30.f));
 }
 
 void Window::setSize(sf::Vector2u size)
 {
-	this->win.setSize(size);
-	this->renderTex.create(this->win.getSize().x, this->win.getSize().y);
+	sf::VideoMode fullMode = sf::VideoMode::getFullscreenModes()[0];
+	bool shouldFullscreen = (fullMode.width == size.x && fullMode.height == size.y) || (size.x == 0 || size.y == 0);
+	this->isFullscreen = shouldFullscreen;
+	if (shouldFullscreen) size = sf::Vector2u(fullMode.width, fullMode.height);
+	else this->size = size;
+	this->win.create(sf::VideoMode(size.x, size.y), this->title, shouldFullscreen? sf::Style::Fullscreen: sf::Style::Default);
+	this->renderTex.create(size.x, size.y);
+	this->UITex.create(size.x, size.y);
 }
 
 void Window::setName(std::string name)
 {
+	this->title = name;
 	this->win.setTitle(name);
 }
 
@@ -77,17 +84,24 @@ void Window::update()
 	this->lastTime = newTime;
 	if (this->dt > 1000) this->dt = 1;
 
+	this->pMan.update(this->dt);
 	this->enemyTimeout += this->dt;
-	if (this->enemyTimeout > 1)
+	this->shootTimeout += this->dt;
+
+	if (this->enemyTimeout > 4)
+		this->player = new Player(sf::Vector2f(this->win.getSize().x, this->win.getSize().y)*0.5f, 500.f, 0.f, 50.f);
+
+	// ingame-related updates (don't do them if there is no player)
+	if (this->player == nullptr) return;
+	if (this->enemyTimeout > 0.3f)
 	{
 		this->enemyTimeout = 0;
 		addRandomEnemy();
 	}
-
-	this->shootTimeout += this->dt;
-	if (this->shootTimeout > 0.2f && this->shootPressed)
+	if (this->shootTimeout > 0.1f && this->shootPressed)
 	{
 		this->shootTimeout = 0;
+		this->soundBoard.playShoot();
 		this->player->shoot();
 	}
 
@@ -116,6 +130,8 @@ void Window::update()
 			{
 				this->enemies.erase(this->enemies.begin() + i);
 				this->player->bullets.erase(this->player->bullets.begin() + j);
+				this->soundBoard.playCrush();
+				this->pMan.addCrushParticles(en->getPos());
 				this->shake();
 				delete en;
 				delete b;
@@ -133,12 +149,21 @@ void Window::render()
 	rs.shader = &this->shader;
 	this->win.clear(sf::Color::Black);
 	this->renderTex.clear(sf::Color::Black);
+	this->UITex.clear(sf::Color::Transparent);
 
-	for (int i = 0; i < this->player->bullets.size(); i++)
-		this->renderTex.draw(this->player->bullets[i]->draw(this->dt));
+	//draw all particles
+	std::vector<Particle*> ps = this->pMan.getParticles();
+	for (int i = 0; i < ps.size(); i++)
+		this->renderTex.draw(ps[i]->draw(this->dt));
+
 	for (int i =0; i < this->enemies.size(); i++)
 		this->renderTex.draw(this->enemies[i]->draw(this->dt));
-	this->renderTex.draw(this->player->draw(this->dt));
+	if (this->player != nullptr)
+	{
+		this->renderTex.draw(this->player->draw(this->dt));
+		for (int i = 0; i < this->player->bullets.size(); i++)
+			this->renderTex.draw(this->player->bullets[i]->draw(this->dt));
+	}
 	this->renderTex.display();
 
 	// UI stuff (text and life bars)
@@ -147,63 +172,62 @@ void Window::render()
 		this->font, 30
 	);
 	scoreText.setPosition(sf::Vector2f(10, 10));
-	/*
-	this->lastFPS += ((1.f / this->dt) - this->lastFPS) * 0.02;
-	sf::Text fpsText(
-		"FPS: " + std::to_string((int)this->lastFPS),
-		this->font, 30
-	);
-	fpsText.setPosition(sf::Vector2f(200, 10));
-	*/
+	this->UITex.draw(scoreText);
 
-	sf::RectangleShape playerLife;
-	playerLife.setSize(sf::Vector2f(60, 4));
-	playerLife.setOrigin(sf::Vector2f(30, 2));
-	playerLife.setOutlineColor(sf::Color::White);
-	playerLife.setFillColor(sf::Color::Transparent);
-	playerLife.setOutlineThickness(2);
-	playerLife.setPosition(
-		this->player->getPos().x,
-		this->player->getPos().y - this->player->getSize()
-	);
-	sf::RectangleShape playerBar;
-	playerBar.setOrigin(sf::Vector2f(0, 2));
-	playerBar.setFillColor(sf::Color::White);
-	playerBar.setSize(sf::Vector2f(this->player->getLife()*60/this->player->getMaxLife(), 4));
-	playerBar.setPosition(
-		this->player->getPos().x-30,
-		this->player->getPos().y - this->player->getSize()
-	);
-	this->renderTex.draw(scoreText);
-	this->renderTex.draw(playerLife);
-	this->renderTex.draw(playerBar);
+	if (this->player != nullptr)
+	{
+		sf::RectangleShape playerLife;
+		playerLife.setSize(sf::Vector2f(60, 4));
+		playerLife.setOrigin(sf::Vector2f(30, 2));
+		playerLife.setOutlineColor(sf::Color::White);
+		playerLife.setFillColor(sf::Color::Transparent);
+		playerLife.setOutlineThickness(2);
+		playerLife.setPosition(
+			this->player->getPos().x,
+			this->player->getPos().y - this->player->getSize()
+		);
+		sf::RectangleShape playerBar;
+		playerBar.setOrigin(sf::Vector2f(0, 2));
+		playerBar.setFillColor(sf::Color::White);
+		playerBar.setSize(sf::Vector2f(this->player->getLife() * 60 / this->player->getMaxLife(), 4));
+		playerBar.setPosition(
+			this->player->getPos().x - 30,
+			this->player->getPos().y - this->player->getSize()
+		);
+		this->UITex.draw(playerLife);
+		this->UITex.draw(playerBar);
+	}
+	this->UITex.display();
 
 	// camera movements (shake and zoom)
-	sf::Sprite sprite(this->renderTex.getTexture());
-	sprite.setOrigin(sf::Vector2f(
-		this->win.getSize().x * 0.5f,
-		this->win.getSize().y * 0.5f
-	));
-	sprite.setPosition(sf::Vector2f(
-		this->win.getSize().x * 0.5f,
-		this->win.getSize().y * 0.5f
-	));
+	sf::Sprite renderSprite(this->renderTex.getTexture());
+	sf::Sprite UISprite(this->UITex.getTexture());
+	renderSprite.setOrigin(sf::Vector2f(this->win.getSize().x * 0.5f, this->win.getSize().y * 0.5f));
+	renderSprite.setPosition(sf::Vector2f(this->win.getSize().x * 0.5f, this->win.getSize().y * 0.5f));
+	renderSprite.setScale(sf::Vector2f(1.f + this->shakeAmount * 0.001f, 1.f + this->shakeAmount * 0.001f));
 	if (this->shakeAmount > 1)
 	{
 		this->shakeAmount--;
-		sprite.setPosition(
+		renderSprite.setPosition(
+			this->win.getSize().x * 0.5f + std::rand() % (int)(this->shakeAmount) - this->shakeAmount * 0.5f,
+			this->win.getSize().y * 0.5f + std::rand() % (int)(this->shakeAmount) - this->shakeAmount * 0.5f
+		);
+		UISprite.setPosition(
 			this->win.getSize().x * 0.5f + std::rand() % (int)(this->shakeAmount) - this->shakeAmount * 0.5f,
 			this->win.getSize().y * 0.5f + std::rand() % (int)(this->shakeAmount) - this->shakeAmount * 0.5f
 		);
 	}
-	sprite.setScale(sf::Vector2f(
-		1.f + this->shakeAmount * 0.001f,
-		1.f + this->shakeAmount * 0.001f
-	));
+	UISprite.setOrigin(sf::Vector2f(this->win.getSize().x * 0.5f, this->win.getSize().y * 0.5f));
+	UISprite.setPosition(sf::Vector2f(this->win.getSize().x * 0.5f, this->win.getSize().y * 0.5f));
+	UISprite.setScale(sf::Vector2f(1.f + this->shakeAmount * 0.001f, 1.f + this->shakeAmount * 0.001f));
 
-	this->shader.setUniform("multiply", this->shakeAmount * 0.03f + 1.1f);
-	this->win.draw(sprite, rs);
-	//this->win.draw(fpsText);
+	// apply shader effects and display
+	this->shader.setUniform("multiply", this->shakeAmount * 0.05f + 0.9f);
+	this->shader.setUniform("texture_inverse", 0.003f);
+	this->win.draw(renderSprite, rs);
+	this->shader.setUniform("multiply", this->shakeAmount * 0.05f + 0.75f);
+	this->shader.setUniform("texture_inverse", 0.002f);
+	this->win.draw(UISprite, rs);
 	this->win.display();
 }
 
@@ -223,7 +247,8 @@ void Window::getEvents()
 			this->close();
 			break;
 		case sf::Event::MouseMoved:
-			this->player->setMousePos(sf::Mouse::getPosition(this->win));
+			if (this->player != nullptr)
+				this->player->setMousePos(sf::Mouse::getPosition(this->win));
 			break;
 		case sf::Event::KeyPressed:
 			this->registerKey(ev.key.code, true);
@@ -237,6 +262,9 @@ void Window::getEvents()
 		case sf::Event::MouseButtonReleased:
 			this->shootPressed = false;
 			break;
+		case sf::Event::Resized:
+			this->setSize(sf::Vector2u(ev.size.width, ev.size.height));
+			break;
 		default:
 			break;
 		}
@@ -247,6 +275,12 @@ void Window::registerKey(int code, bool state)
 {
 	switch (code)
 	{
+	case sf::Keyboard::Escape:
+		this->win.close();
+		break;
+	case sf::Keyboard::F11:
+		if (state) this->toogleFullscreen();
+		break;
 	case sf::Keyboard::Up:
 	case sf::Keyboard::Z:
 	case sf::Keyboard::W:
@@ -268,12 +302,21 @@ void Window::registerKey(int code, bool state)
 	default:
 		break;
 	}
-	this->player->setKeys(this->keys);
+	if (this->player != nullptr)
+		this->player->setKeys(this->keys);
+}
+
+void Window::toogleFullscreen()
+{
+	if (this->isFullscreen)
+		this->setSize(this->size);
+	else this->setSize(sf::Vector2u());
 }
 
 void Window::kickPlayer()
 {
-	this->player->setLife(this->player->getLife()-1);
+	if (this->player == nullptr) return;
+	this->player->kick();
 	if (this->player->getLife() == 0)
 		this->win.close();
 }

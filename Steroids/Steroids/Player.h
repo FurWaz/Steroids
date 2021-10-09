@@ -9,6 +9,7 @@ private:
 	sf::Vector2i mPos;
 	int maxLife = 400;
 	int life = this->maxLife;
+	float shootDelta = 0;
 	bool keys[4] = { false, false, false, false };
 	sf::ConvexShape shape;
 
@@ -26,6 +27,7 @@ public:
 	void shoot();
 
 	void setLife(int life);
+	void kick(int force = 1);
 	int getLife();
 	int getMaxLife();
 };

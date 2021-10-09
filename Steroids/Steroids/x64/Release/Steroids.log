@@ -1,5 +1,18 @@
-﻿  Window.cpp
-C:\Users\FurWaz\Documents\GitHub\Steroids\Steroids\Steroids\Window.cpp(24,62): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+﻿  GameManager.cpp
+  SceneGenerator.cpp
+  UIElement.cpp
+C:\Users\FurWaz\Documents\GitHub\Steroids\Steroids\Steroids\UIElement.cpp(20,53): warning C4244: 'argument': conversion from 'T' to 'unsigned int', possible loss of data
+          with
+          [
+              T=float
+          ]
+C:\Users\FurWaz\Documents\GitHub\Steroids\Steroids\Steroids\UIElement.cpp(20,35): warning C4244: 'argument': conversion from 'T' to 'unsigned int', possible loss of data
+          with
+          [
+              T=float
+          ]
+  Window.cpp
+C:\Users\FurWaz\Documents\GitHub\Steroids\Steroids\Steroids\Window.cpp(44,16): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
           with
           [
               T=unsigned int
@@ -8,7 +21,7 @@ C:\Users\FurWaz\Documents\GitHub\Steroids\Steroids\Steroids\Window.cpp(24,62): w
           [
               T=float
           ]
-C:\Users\FurWaz\Documents\GitHub\Steroids\Steroids\Steroids\Window.cpp(24,37): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+C:\Users\FurWaz\Documents\GitHub\Steroids\Steroids\Steroids\Window.cpp(43,16): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
           with
           [
               T=unsigned int
@@ -17,7 +30,7 @@ C:\Users\FurWaz\Documents\GitHub\Steroids\Steroids\Steroids\Window.cpp(24,37): w
           [
               T=float
           ]
-C:\Users\FurWaz\Documents\GitHub\Steroids\Steroids\Steroids\Window.cpp(47,15): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+C:\Users\FurWaz\Documents\GitHub\Steroids\Steroids\Steroids\Window.cpp(49,16): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
           with
           [
               T=unsigned int
@@ -26,7 +39,7 @@ C:\Users\FurWaz\Documents\GitHub\Steroids\Steroids\Steroids\Window.cpp(47,15): w
           [
               T=float
           ]
-C:\Users\FurWaz\Documents\GitHub\Steroids\Steroids\Steroids\Window.cpp(46,15): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+C:\Users\FurWaz\Documents\GitHub\Steroids\Steroids\Steroids\Window.cpp(48,16): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
           with
           [
               T=unsigned int
@@ -35,15 +48,32 @@ C:\Users\FurWaz\Documents\GitHub\Steroids\Steroids\Steroids\Window.cpp(46,15): w
           [
               T=float
           ]
-C:\Users\FurWaz\Documents\GitHub\Steroids\Steroids\Steroids\Window.cpp(172,59): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
+C:\Users\FurWaz\Documents\GitHub\Steroids\Steroids\Steroids\Window.cpp(94,84): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+          with
+          [
+              T=unsigned int
+          ]
+          and
+          [
+              T=float
+          ]
+C:\Users\FurWaz\Documents\GitHub\Steroids\Steroids\Steroids\Window.cpp(94,61): warning C4244: 'argument': conversion from 'T' to 'T', possible loss of data
+          with
+          [
+              T=unsigned int
+          ]
+          and
+          [
+              T=float
+          ]
+C:\Users\FurWaz\Documents\GitHub\Steroids\Steroids\Steroids\Window.cpp(194,63): warning C4244: 'argument': conversion from 'int' to 'T', possible loss of data
           with
           [
               T=float
           ]
-  main.cpp
   Generating code
+  4 of 402 functions ( 1.0%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    47 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
-  4 of 310 functions ( 1.3%) were compiled, the rest were copied from previous compilation.
-    2 functions were new in current compilation
-    9 functions had inline decision re-evaluated but remain unchanged
   Steroids.vcxproj -> C:\Users\FurWaz\Documents\GitHub\Steroids\Steroids\x64\Release\Steroids.exe
