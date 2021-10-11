@@ -146,6 +146,21 @@ void Window::update()
 		}
 	}
 	this->player->update(this->dt);
+	if (sf::Joystick::isConnected(0))
+	{
+		sf::Vector2f movement(
+			sf::Joystick::getAxisPosition(0, sf::Joystick::X),
+			sf::Joystick::getAxisPosition(0, sf::Joystick::Y)
+		);
+		this->player->setMovement(movement);
+		this->player->setSpeed( (abs(movement.x) + abs(movement.y)) * 0.005 * 1.43);
+		if (sf::Joystick::getAxisPosition(0, sf::Joystick::R) != 0)
+			this->player->setDirection(std::atan2f(
+				-sf::Joystick::getAxisPosition(0, sf::Joystick::Z),
+				sf::Joystick::getAxisPosition(0, sf::Joystick::R)
+			));
+		this->shootPressed = sf::Joystick::isButtonPressed(0, 7);
+	}
 }
 
 void Window::render()

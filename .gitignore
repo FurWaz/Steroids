@@ -1,7 +1,10 @@
 .vs/
-.ilk
-.recipe
-.db
-.pdb
-.tlog
-.obj
+*.ilk
+*.recipe
+*.db
+*.pdb
+*.ipdb
+*.tlog
+*.obj
+*.iobj
+*.log

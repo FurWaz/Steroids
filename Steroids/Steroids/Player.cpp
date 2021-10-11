@@ -29,6 +29,10 @@ void Player::setKeys(bool* keys)
 {
 	for (unsigned char i = 0; i < 4; i++)
 		this->keys[i] = keys[i];
+	this->tarVel = sf::Vector2f(
+		(this->keys[2] ? 1 : 0) - (this->keys[3] ? 1 : 0),
+		(this->keys[1] ? 1 : 0) - (this->keys[0] ? 1 : 0)
+	);
 }
 
 void Player::update(float dt)
@@ -39,15 +43,10 @@ void Player::update(float dt)
 	) - 1.5707963);
 
 	this->curSize += (this->tarSize - this->curSize) * dt * 2;
-
-	this->tarVel = sf::Vector2f(
-		(this->keys[2] ? 1 : 0) - (this->keys[3] ? 1 : 0),
-		(this->keys[1] ? 1 : 0) - (this->keys[0] ? 1 : 0)
-	);
 	// normalize movements
 	float length = std::sqrt(this->tarVel.x * this->tarVel.x + this->tarVel.y * this->tarVel.y);
 	if (length != 0) this->tarVel /= length;
-	this->tarVel *= this->speed;
+	this->tarVel *= this->speed * this->speedMultiplyer;
 	this->curVel += (this->tarVel - this->curVel) * ( dt / this->smoothness);
 	this->pos += this->curVel * dt;
 	if (this->shootDelta > 0) this->shootDelta--;
@@ -87,6 +86,16 @@ int Player::getLife()
 int Player::getMaxLife()
 {
 	return this->maxLife;
+}
+
+void Player::setSpeed(float speed)
+{
+	this->speedMultiplyer = speed;
+}
+
+void Player::setMovement(sf::Vector2f move)
+{
+	this->tarVel = move;
 }
 
 void Player::kick(float force)

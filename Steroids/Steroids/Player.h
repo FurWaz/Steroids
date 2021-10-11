@@ -12,6 +12,7 @@ private:
 	float shootDelta = 0;
 	float curSize = 0;
 	float tarSize = 1;
+	float speedMultiplyer = 1;
 	bool keys[4] = { false, false, false, false };
 	sf::ConvexShape shape;
 
@@ -31,6 +32,9 @@ public:
 	void setLife(int life);
 	void kick(float force = 1);
 	void setSize(float size);
+
+	void setMovement(sf::Vector2f move);
+	void setSpeed(float speed);
 
 	int getLife();
 	int getMaxLife();
