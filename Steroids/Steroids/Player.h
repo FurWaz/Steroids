@@ -7,9 +7,11 @@ class Player : public Entity
 {
 private:
 	sf::Vector2i mPos;
-	int maxLife = 400;
-	int life = this->maxLife;
+	float maxLife = 50;
+	float life = this->maxLife;
 	float shootDelta = 0;
+	float curSize = 0;
+	float tarSize = 1;
 	bool keys[4] = { false, false, false, false };
 	sf::ConvexShape shape;
 
@@ -27,7 +29,9 @@ public:
 	void shoot();
 
 	void setLife(int life);
-	void kick(int force = 1);
+	void kick(float force = 1);
+	void setSize(float size);
+
 	int getLife();
 	int getMaxLife();
 };

@@ -17,6 +17,7 @@ private:
 	float dt;
 	float enemyTimeout;
 	float shootTimeout;
+	float kickTimeout;
 	float shakeAmount;
 	float lastFPS = 60;
 	Player* player = nullptr;

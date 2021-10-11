@@ -12,7 +12,7 @@ Window::Window(sf::Vector2u size, std::string name)
 
 void Window::init(sf::Vector2u size, std::string name)
 {
-	if (size.x != 0 && size.y != 0) this->setSize(size);
+	this->setSize(size);
 	this->setName(name);
 	sf::ContextSettings cs;
 	cs.antialiasingLevel = 8;
@@ -87,6 +87,7 @@ void Window::update()
 	this->pMan.update(this->dt);
 	this->enemyTimeout += this->dt;
 	this->shootTimeout += this->dt;
+	this->kickTimeout += this->dt;
 
 	if (this->enemyTimeout > 4)
 		this->player = new Player(sf::Vector2f(this->win.getSize().x, this->win.getSize().y)*0.5f, 500.f, 0.f, 50.f);
@@ -116,13 +117,17 @@ void Window::update()
 			delete b;
 		}
 	}
+	this->player->setSize(1);
 	for (int i = 0; i < this->enemies.size(); i++)
 	{
 		Enemy* en = this->enemies.at(i);
 		en->setPlayerPos(this->player->getPos());
 		en->update(this->dt);
 		if (this->player->collides(en))
+		{
 			this->kickPlayer();
+			this->player->setSize(0.8);
+		}
 		for (int j = 0; j < this->player->bullets.size(); j++)
 		{
 			Bullet* b = this->player->bullets.at(j);
@@ -233,7 +238,7 @@ void Window::render()
 
 void Window::shake()
 {
-	this->shakeAmount = 25;
+	this->shakeAmount += 5;
 }
 
 void Window::getEvents()
@@ -316,7 +321,11 @@ void Window::toogleFullscreen()
 void Window::kickPlayer()
 {
 	if (this->player == nullptr) return;
-	this->player->kick();
+	this->player->kick(this->dt);
+	if (this->kickTimeout > 0.2) {
+		this->kickTimeout = 0;
+		this->pMan.addKickParticles(this->player->getPos());
+	}
 	if (this->player->getLife() == 0)
 		this->win.close();
 }

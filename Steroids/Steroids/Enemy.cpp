@@ -25,7 +25,10 @@ void Enemy::update(float dt)
 	this->tarVel = this->dir;
 	this->tarVel *= this->speed;
 	this->curVel += (this->tarVel - this->curVel) * (dt / this->smoothness);
-	this->pos += this->curVel * dt;
+	float dx = this->playerPos.x - this->pos.x;
+	float dy = this->playerPos.y - this->pos.y;
+	if (std::sqrt(dx*dx + dy*dy) > this->size)
+		this->pos += this->curVel * dt;
 }
 
 sf::Sprite Enemy::draw(float dt)

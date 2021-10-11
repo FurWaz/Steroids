@@ -10,6 +10,7 @@ private:
 public:
 	ParticleManager();
 	void addCrushParticles(sf::Vector2f pos);
+	void addKickParticles(sf::Vector2f pos);
 	void update(float dt);
 	std::vector<Particle*> getParticles();
 };

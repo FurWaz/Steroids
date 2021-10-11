@@ -5,6 +5,21 @@ ParticleManager::ParticleManager()
 
 }
 
+void ParticleManager::addKickParticles(sf::Vector2f pos)
+{
+	for (int i = 0; i < 10; i++) // enemy particles
+	{
+		this->particles.push_back(new Particle(
+			pos,
+			sf::Color::Blue,
+			rand() * 0.01f,
+			(rand() % 100 + 100) / 200.f,
+			(rand() % 100 + 100) / 10.f,
+			rand() % 150 + 100
+		));
+	}
+}
+
 void ParticleManager::addCrushParticles(sf::Vector2f pos)
 {
 	for (int i = 0; i < 10; i++) // enemy particles
