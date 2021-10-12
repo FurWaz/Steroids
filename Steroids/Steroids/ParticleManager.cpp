@@ -46,7 +46,7 @@ void ParticleManager::addCrushParticles(sf::Vector2f pos)
 	}
 }
 
-void ParticleManager::update(float dt)
+void ParticleManager::update(float dt, GameManager gm)
 {
 	for (int i = 0; i < this->particles.size(); i++)
 	{
@@ -58,6 +58,14 @@ void ParticleManager::update(float dt)
 			delete p;
 		}
 	}
+
+	float bLvl = gm.getSoundInfo().getBassLevel();
+	for (int i = 0; i < this->backParticles.size(); i++)
+	{
+		// TODO: faire des particules speciales pour le fond avec ces fonctions.
+		this->backParticles[i]->setColor(sf::Color(bLvl * 255, bLvl * 255, bLvl * 255));
+	}
+
 }
 
 std::vector<Particle*> ParticleManager::getParticles()

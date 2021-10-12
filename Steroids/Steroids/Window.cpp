@@ -84,7 +84,7 @@ void Window::update()
 	this->lastTime = newTime;
 	if (this->dt > 1000) this->dt = 1;
 
-	this->pMan.update(this->dt);
+	this->pMan.update(this->dt, this->gm);
 	this->enemyTimeout += this->dt;
 	this->shootTimeout += this->dt;
 	this->kickTimeout += this->dt;

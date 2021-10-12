@@ -5,6 +5,7 @@
 #include "Enemy.h"
 #include "ParticleManager.h"
 #include "SoundBoard.h"
+#include "GameManager.h"
 
 class Window
 {
@@ -26,6 +27,7 @@ private:
 	sf::RenderTexture UITex;
 	std::vector<Enemy*> enemies;
 	ParticleManager pMan;
+	GameManager gm;
 	SoundBoard soundBoard;
 
 	sf::Font font;

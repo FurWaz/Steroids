@@ -33,3 +33,8 @@ void GameManager::remUIElement(UIElement& elem, bool shouldDelete)
 		}
 	}
 }
+
+SoundInfo GameManager::getSoundInfo()
+{
+	return this->soundInfos;
+}

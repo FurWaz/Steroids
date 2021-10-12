@@ -162,6 +162,7 @@
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="SceneGenerator.cpp" />
     <ClCompile Include="SoundBoard.cpp" />
+    <ClCompile Include="SoundInfo.cpp" />
     <ClCompile Include="UIElement.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
@@ -176,6 +177,7 @@
     <ClInclude Include="Player.h" />
     <ClInclude Include="SceneGenerator.h" />
     <ClInclude Include="SoundBoard.h" />
+    <ClInclude Include="SoundInfo.h" />
     <ClInclude Include="UIElement.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
