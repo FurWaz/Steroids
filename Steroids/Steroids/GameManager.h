@@ -9,6 +9,7 @@ private:
 	bool inGame = false;
 	std::vector<UIElement*> UIelems;
 	SoundInfo soundInfos;
+	sf::Vector2u screenSize;
 
 public:
 	bool isInGame();
@@ -18,4 +19,6 @@ public:
 	void remUIElement(UIElement& elem, bool shouldDelete = false);
 
 	SoundInfo getSoundInfo();
+	sf::Vector2u getScreenSize();
+	void setScreenSize(sf::Vector2u size);
 };

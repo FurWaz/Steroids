@@ -151,6 +151,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BackParticle.cpp" />
     <ClCompile Include="Bullet.cpp" />
     <ClCompile Include="Button.cpp" />
     <ClCompile Include="Enemy.cpp" />
@@ -167,6 +168,7 @@
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BackParticle.h" />
     <ClInclude Include="Bullet.h" />
     <ClInclude Include="Button.h" />
     <ClInclude Include="Enemy.h" />

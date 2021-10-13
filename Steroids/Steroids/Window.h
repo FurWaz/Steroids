@@ -26,8 +26,8 @@ private:
 	sf::RenderTexture renderTex;
 	sf::RenderTexture UITex;
 	std::vector<Enemy*> enemies;
-	ParticleManager pMan;
 	GameManager gm;
+	ParticleManager* pMan;
 	SoundBoard soundBoard;
 
 	sf::Font font;
@@ -53,4 +53,6 @@ public:
 	void getEvents();
 	void registerKey(int code, bool state);
 	void kickPlayer();
+
+	~Window();
 };

@@ -1,8 +1,21 @@
 #include "ParticleManager.h"
 
-ParticleManager::ParticleManager()
+ParticleManager::ParticleManager(GameManager& gm)
 {
+	this->gm = &gm;
+	for (int i = 0; i < this->NB_BACKPARTICLES; i++)
+		addBackParticle(i);
+}
 
+void ParticleManager::addBackParticle(int index)
+{
+	this->backParticles[index] = new BackParticle(
+		sf::Vector2f(this->gm->getScreenSize().x/2, this->gm->getScreenSize().y/2),
+		sf::Color::Yellow,
+		rand() * 0.01f,
+		rand() % 200 + 100,
+		rand() % 100 + 50
+	);
 }
 
 void ParticleManager::addKickParticles(sf::Vector2f pos)
@@ -46,8 +59,9 @@ void ParticleManager::addCrushParticles(sf::Vector2f pos)
 	}
 }
 
-void ParticleManager::update(float dt, GameManager gm)
+void ParticleManager::update(float dt)
 {
+	// update entity particles
 	for (int i = 0; i < this->particles.size(); i++)
 	{
 		Particle* p = this->particles[i];
@@ -59,16 +73,37 @@ void ParticleManager::update(float dt, GameManager gm)
 		}
 	}
 
-	float bLvl = gm.getSoundInfo().getBassLevel();
-	for (int i = 0; i < this->backParticles.size(); i++)
+	// update background particles
+	float bLvl = this->gm->getSoundInfo().getBassLevel();
+	sf::Vector2u size = this->gm->getScreenSize();
+	for (int i = 0; i < this->NB_BACKPARTICLES; i++)
 	{
-		// TODO: faire des particules speciales pour le fond avec ces fonctions.
-		this->backParticles[i]->setColor(sf::Color(bLvl * 255, bLvl * 255, bLvl * 255));
-	}
+		BackParticle* p = this->backParticles[i];
+		if (p == nullptr) continue;
+		sf::Vector2f pos = p->getPos();
+		
+		float dx = size.x/2 - pos.x;
+		float dy = size.y/2 - pos.y;
+		float distFromCenter = std::sqrt(dx*dx + dy*dy);
+		p->setAlpha(bLvl * 0.7 + 0.3);
+		p->setScaleFactor(0.5 + bLvl * 0.2 + distFromCenter*2/size.x);
+		p->update(dt);
 
+		if (pos.x < 0 || pos.x > this->gm->getScreenSize().x || pos.y < 0 || pos.y > this->gm->getScreenSize().y)
+		{
+			delete this->backParticles[i];
+			this->backParticles[i] = nullptr;
+			//this->addBackParticle(i);
+		}
+	}
 }
 
 std::vector<Particle*> ParticleManager::getParticles()
 {
 	return this->particles;
+}
+
+BackParticle** ParticleManager::getBackParticles()
+{
+	return this->backParticles;
 }

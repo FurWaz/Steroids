@@ -38,3 +38,13 @@ SoundInfo GameManager::getSoundInfo()
 {
 	return this->soundInfos;
 }
+
+sf::Vector2u GameManager::getScreenSize()
+{
+	return this->screenSize;
+}
+
+void GameManager::setScreenSize(sf::Vector2u size)
+{
+	this->screenSize = size;
+}

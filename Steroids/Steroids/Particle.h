@@ -4,7 +4,7 @@
 
 class Particle
 {
-private:
+protected:
 	sf::Vector2f pos;
 	sf::Vector2f dir;
 	float initSize;
@@ -26,6 +26,7 @@ public:
 	virtual void update(float dt);
 	sf::Sprite draw(float dt);
 
+	sf::Vector2f getPos();
 	float getCounter();
 	float getLifetime();
 };

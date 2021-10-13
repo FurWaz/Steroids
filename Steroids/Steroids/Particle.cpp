@@ -54,3 +54,8 @@ float Particle::getLifetime()
 {
 	return this->lifeTime;
 }
+
+sf::Vector2f Particle::getPos()
+{
+	return this->pos;
+}

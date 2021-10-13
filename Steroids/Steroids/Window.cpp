@@ -21,6 +21,7 @@ void Window::init(sf::Vector2u size, std::string name)
 	this->shakeAmount = 0;
 	this->score = 0;
 	this->shootTimeout = 0;
+	this->pMan = new ParticleManager(this->gm);
 
 	if (!this->shader.loadFromFile("./Glare.glsl", sf::Shader::Fragment))
 	{
@@ -59,6 +60,7 @@ void Window::setSize(sf::Vector2u size)
 	this->win.create(sf::VideoMode(size.x, size.y), this->title, shouldFullscreen? sf::Style::Fullscreen: sf::Style::Default);
 	this->renderTex.create(size.x, size.y);
 	this->UITex.create(size.x, size.y);
+	this->gm.setScreenSize(size);
 }
 
 void Window::setName(std::string name)
@@ -84,12 +86,12 @@ void Window::update()
 	this->lastTime = newTime;
 	if (this->dt > 1000) this->dt = 1;
 
-	this->pMan.update(this->dt, this->gm);
+	this->pMan->update(this->dt);
 	this->enemyTimeout += this->dt;
 	this->shootTimeout += this->dt;
 	this->kickTimeout += this->dt;
 
-	if (this->enemyTimeout > 4)
+	if (this->enemyTimeout > 1)
 		this->player = new Player(sf::Vector2f(this->win.getSize().x, this->win.getSize().y)*0.5f, 500.f, 0.f, 50.f);
 
 	// ingame-related updates (don't do them if there is no player)
@@ -113,14 +115,14 @@ void Window::update()
 		sf::Vector2f pos = b->getPos();
 		if (pos.x < 0 || pos.x > this->win.getSize().x || pos.y < 0 || pos.y > this->win.getSize().y)
 		{
+			delete this->player->bullets[i];
 			this->player->bullets.erase(this->player->bullets.begin() + i);
-			delete b;
 		}
 	}
 	this->player->setSize(1);
 	for (int i = 0; i < this->enemies.size(); i++)
 	{
-		Enemy* en = this->enemies.at(i);
+		Enemy* en = this->enemies[i];
 		en->setPlayerPos(this->player->getPos());
 		en->update(this->dt);
 		if (this->player->collides(en))
@@ -130,23 +132,23 @@ void Window::update()
 		}
 		for (int j = 0; j < this->player->bullets.size(); j++)
 		{
-			Bullet* b = this->player->bullets.at(j);
+			Bullet* b = this->player->bullets[j];
 			if (b->collides(en))
 			{
 				this->enemies.erase(this->enemies.begin() + i);
 				this->player->bullets.erase(this->player->bullets.begin() + j);
 				this->soundBoard.playCrush();
-				this->pMan.addCrushParticles(en->getPos());
+				this->pMan->addCrushParticles(en->getPos());
 				this->shake();
-				delete en;
-				delete b;
+				delete this->enemies[i];
+				delete this->player->bullets[j];
 				score++;
-				continue;
+				break;
 			}
 		}
 	}
 	this->player->update(this->dt);
-	if (sf::Joystick::isConnected(0))
+	if (sf::Joystick::isConnected(0) && false)
 	{
 		sf::Vector2f movement(
 			sf::Joystick::getAxisPosition(0, sf::Joystick::X),
@@ -172,10 +174,12 @@ void Window::render()
 	this->UITex.clear(sf::Color::Transparent);
 
 	//draw all particles
-	std::vector<Particle*> ps = this->pMan.getParticles();
+	std::vector<Particle*> ps = this->pMan->getParticles();
 	for (int i = 0; i < ps.size(); i++)
 		this->renderTex.draw(ps[i]->draw(this->dt));
-
+	//BackParticle** bps = this->pMan->getBackParticles();
+	//for (int i = 0; i < this->pMan->NB_BACKPARTICLES; i++)
+	//	this->renderTex.draw(bps[i]->draw(this->dt));
 	for (int i =0; i < this->enemies.size(); i++)
 		this->renderTex.draw(this->enemies[i]->draw(this->dt));
 	if (this->player != nullptr)
@@ -253,7 +257,7 @@ void Window::render()
 
 void Window::shake()
 {
-	this->shakeAmount += 5;
+	this->shakeAmount = 15;
 }
 
 void Window::getEvents()
@@ -339,8 +343,16 @@ void Window::kickPlayer()
 	this->player->kick(this->dt);
 	if (this->kickTimeout > 0.2) {
 		this->kickTimeout = 0;
-		this->pMan.addKickParticles(this->player->getPos());
+		this->pMan->addKickParticles(this->player->getPos());
 	}
 	if (this->player->getLife() == 0)
 		this->win.close();
+}
+
+Window::~Window()
+{
+	if (this->player != nullptr)
+		delete this->player;
+	if (this->pMan != nullptr)
+		delete this->pMan;
 }
