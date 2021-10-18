@@ -135,13 +135,13 @@ void Window::update()
 			Bullet* b = this->player->bullets[j];
 			if (b->collides(en))
 			{
-				this->enemies.erase(this->enemies.begin() + i);
-				this->player->bullets.erase(this->player->bullets.begin() + j);
 				this->soundBoard.playCrush();
 				this->pMan->addCrushParticles(en->getPos());
 				this->shake();
 				delete this->enemies[i];
 				delete this->player->bullets[j];
+				this->enemies.erase(this->enemies.begin() + i);
+				this->player->bullets.erase(this->player->bullets.begin() + j);
 				score++;
 				break;
 			}
