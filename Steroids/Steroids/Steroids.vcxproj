@@ -154,8 +154,10 @@
     <ClCompile Include="BackParticle.cpp" />
     <ClCompile Include="Bullet.cpp" />
     <ClCompile Include="Button.cpp" />
+    <ClCompile Include="CallbackContainer.cpp" />
     <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="Entity.cpp" />
+    <ClCompile Include="Files.cpp" />
     <ClCompile Include="GameManager.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Particle.cpp" />
@@ -164,15 +166,20 @@
     <ClCompile Include="SceneGenerator.cpp" />
     <ClCompile Include="SoundBoard.cpp" />
     <ClCompile Include="SoundInfo.cpp" />
+    <ClCompile Include="SoundLauncher.cpp" />
+    <ClCompile Include="Text.cpp" />
     <ClCompile Include="UIElement.cpp" />
+    <ClCompile Include="UIList.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BackParticle.h" />
     <ClInclude Include="Bullet.h" />
     <ClInclude Include="Button.h" />
+    <ClInclude Include="CallbackContainer.h" />
     <ClInclude Include="Enemy.h" />
     <ClInclude Include="Entity.h" />
+    <ClInclude Include="Files.h" />
     <ClInclude Include="GameManager.h" />
     <ClInclude Include="Particle.h" />
     <ClInclude Include="ParticleManager.h" />
@@ -180,7 +187,10 @@
     <ClInclude Include="SceneGenerator.h" />
     <ClInclude Include="SoundBoard.h" />
     <ClInclude Include="SoundInfo.h" />
+    <ClInclude Include="SoundLauncher.h" />
+    <ClInclude Include="Text.h" />
     <ClInclude Include="UIElement.h" />
+    <ClInclude Include="UIList.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>

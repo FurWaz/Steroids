@@ -21,14 +21,12 @@ private:
 	float kickTimeout;
 	float shakeAmount;
 	float lastFPS = 60;
-	Player* player = nullptr;
 	sf::Shader shader;
 	sf::RenderTexture renderTex;
 	sf::RenderTexture UITex;
 	std::vector<Enemy*> enemies;
 	GameManager gm;
 	ParticleManager* pMan;
-	SoundBoard soundBoard;
 
 	sf::Font font;
 	int score;

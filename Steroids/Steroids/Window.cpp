@@ -1,4 +1,6 @@
 #include "Window.h"
+#include "SceneGenerator.h"
+#include "Text.h"
 
 Window::Window()
 {
@@ -17,6 +19,7 @@ void Window::init(sf::Vector2u size, std::string name)
 	sf::ContextSettings cs;
 	cs.antialiasingLevel = 8;
 	this->win.setVerticalSyncEnabled(true);
+	this->win.setFramerateLimit(60);
 	this->enemyTimeout = 0;
 	this->shakeAmount = 0;
 	this->score = 0;
@@ -31,6 +34,9 @@ void Window::init(sf::Vector2u size, std::string name)
 
 	if (!font.loadFromFile("upheavtt.ttf"))
 		std::cout << "Error: failed to load font" << std::endl;
+
+	SceneGenerator::setGameManager(this->gm);
+	SceneGenerator::generateMenuScene();
 }
 
 void Window::addRandomEnemy()
@@ -57,7 +63,7 @@ void Window::setSize(sf::Vector2u size)
 	this->isFullscreen = shouldFullscreen;
 	if (shouldFullscreen) size = sf::Vector2u(fullMode.width, fullMode.height);
 	else this->size = size;
-	this->win.create(sf::VideoMode(size.x, size.y), this->title, shouldFullscreen? sf::Style::Fullscreen: sf::Style::Default);
+	this->win.create(sf::VideoMode(size.x, size.y), this->title, shouldFullscreen? sf::Style::Fullscreen: sf::Style::Close);
 	this->renderTex.create(size.x, size.y);
 	this->UITex.create(size.x, size.y);
 	this->gm.setScreenSize(size);
@@ -91,11 +97,13 @@ void Window::update()
 	this->shootTimeout += this->dt;
 	this->kickTimeout += this->dt;
 
-	if (this->enemyTimeout > 1)
-		this->player = new Player(sf::Vector2f(this->win.getSize().x, this->win.getSize().y)*0.5f, 500.f, 0.f, 50.f);
+	// update the UI
+	std::vector<UIElement*> elems = gm.getUIElements();
+	for (unsigned int i = 0; i < elems.size(); i++)
+		elems[i]->update(this->dt);
 
 	// ingame-related updates (don't do them if there is no player)
-	if (this->player == nullptr) return;
+	if (this->gm.player == nullptr) return;
 	if (this->enemyTimeout > 0.3f)
 	{
 		this->enemyTimeout = 0;
@@ -104,60 +112,62 @@ void Window::update()
 	if (this->shootTimeout > 0.1f && this->shootPressed)
 	{
 		this->shootTimeout = 0;
-		this->soundBoard.playShoot();
-		this->player->shoot();
+		this->gm.getSoundBoard()->playShoot();
+		this->gm.player->shoot();
 	}
 
-	for (int i = 0; i < this->player->bullets.size(); i++)
+	for (int i = 0; i < this->gm.player->bullets.size(); i++)
 	{
-		Bullet* b = this->player->bullets[i];
+		Bullet* b = this->gm.player->bullets[i];
 		b->update(this->dt);
 		sf::Vector2f pos = b->getPos();
 		if (pos.x < 0 || pos.x > this->win.getSize().x || pos.y < 0 || pos.y > this->win.getSize().y)
 		{
-			delete this->player->bullets[i];
-			this->player->bullets.erase(this->player->bullets.begin() + i);
+			delete this->gm.player->bullets[i];
+			this->gm.player->bullets.erase(this->gm.player->bullets.begin() + i);
 		}
 	}
-	this->player->setSize(1);
+	this->gm.player->setSize(1);
 	for (int i = 0; i < this->enemies.size(); i++)
 	{
 		Enemy* en = this->enemies[i];
-		en->setPlayerPos(this->player->getPos());
+		en->setPlayerPos(this->gm.player->getPos());
 		en->update(this->dt);
-		if (this->player->collides(en))
+		if (this->gm.player->collides(en))
 		{
 			this->kickPlayer();
-			this->player->setSize(0.8);
+			if (this->gm.player == nullptr)
+				return;
+			this->gm.player->setSize(0.8);
 		}
-		for (int j = 0; j < this->player->bullets.size(); j++)
+		for (int j = 0; j < this->gm.player->bullets.size(); j++)
 		{
-			Bullet* b = this->player->bullets[j];
+			Bullet* b = this->gm.player->bullets[j];
 			if (b->collides(en))
 			{
-				this->soundBoard.playCrush();
+				this->gm.getSoundBoard()->playCrush();
 				this->pMan->addCrushParticles(en->getPos());
 				this->shake();
 				delete this->enemies[i];
-				delete this->player->bullets[j];
+				delete this->gm.player->bullets[j];
 				this->enemies.erase(this->enemies.begin() + i);
-				this->player->bullets.erase(this->player->bullets.begin() + j);
+				this->gm.player->bullets.erase(this->gm.player->bullets.begin() + j);
 				score++;
 				break;
 			}
 		}
 	}
-	this->player->update(this->dt);
+	this->gm.player->update(this->dt);
 	if (sf::Joystick::isConnected(0) && false)
 	{
 		sf::Vector2f movement(
 			sf::Joystick::getAxisPosition(0, sf::Joystick::X),
 			sf::Joystick::getAxisPosition(0, sf::Joystick::Y)
 		);
-		this->player->setMovement(movement);
-		this->player->setSpeed( (abs(movement.x) + abs(movement.y)) * 0.005 * 1.43);
+		this->gm.player->setMovement(movement);
+		this->gm.player->setSpeed( (abs(movement.x) + abs(movement.y)) * 0.005 * 1.43);
 		if (sf::Joystick::getAxisPosition(0, sf::Joystick::R) != 0)
-			this->player->setDirection(std::atan2f(
+			this->gm.player->setDirection(std::atan2f(
 				-sf::Joystick::getAxisPosition(0, sf::Joystick::Z),
 				sf::Joystick::getAxisPosition(0, sf::Joystick::R)
 			));
@@ -173,6 +183,11 @@ void Window::render()
 	this->renderTex.clear(sf::Color::Black);
 	this->UITex.clear(sf::Color::Transparent);
 
+	// draw the UI
+	std::vector<UIElement*> elems = gm.getUIElements();
+	for (unsigned int i = 0; i < elems.size(); i++)
+		this->UITex.draw(elems[i]->draw(this->dt));
+
 	//draw all particles
 	std::vector<Particle*> ps = this->pMan->getParticles();
 	for (int i = 0; i < ps.size(); i++)
@@ -182,11 +197,11 @@ void Window::render()
 	//	this->renderTex.draw(bps[i]->draw(this->dt));
 	for (int i =0; i < this->enemies.size(); i++)
 		this->renderTex.draw(this->enemies[i]->draw(this->dt));
-	if (this->player != nullptr)
+	if (this->gm.player != nullptr)
 	{
-		this->renderTex.draw(this->player->draw(this->dt));
-		for (int i = 0; i < this->player->bullets.size(); i++)
-			this->renderTex.draw(this->player->bullets[i]->draw(this->dt));
+		this->renderTex.draw(this->gm.player->draw(this->dt));
+		for (int i = 0; i < this->gm.player->bullets.size(); i++)
+			this->renderTex.draw(this->gm.player->bullets[i]->draw(this->dt));
 	}
 	this->renderTex.display();
 
@@ -196,9 +211,10 @@ void Window::render()
 		this->font, 30
 	);
 	scoreText.setPosition(sf::Vector2f(10, 10));
-	this->UITex.draw(scoreText);
+	if (this->gm.player != nullptr)
+		this->UITex.draw(scoreText);
 
-	if (this->player != nullptr)
+	if (this->gm.player != nullptr)
 	{
 		sf::RectangleShape playerLife;
 		playerLife.setSize(sf::Vector2f(60, 4));
@@ -207,16 +223,16 @@ void Window::render()
 		playerLife.setFillColor(sf::Color::Transparent);
 		playerLife.setOutlineThickness(2);
 		playerLife.setPosition(
-			this->player->getPos().x,
-			this->player->getPos().y - this->player->getSize()
+			this->gm.player->getPos().x,
+			this->gm.player->getPos().y - this->gm.player->getSize()
 		);
 		sf::RectangleShape playerBar;
 		playerBar.setOrigin(sf::Vector2f(0, 2));
 		playerBar.setFillColor(sf::Color::White);
-		playerBar.setSize(sf::Vector2f(this->player->getLife() * 60 / this->player->getMaxLife(), 4));
+		playerBar.setSize(sf::Vector2f(this->gm.player->getLife() * 60 / this->gm.player->getMaxLife(), 4));
 		playerBar.setPosition(
-			this->player->getPos().x - 30,
-			this->player->getPos().y - this->player->getSize()
+			this->gm.player->getPos().x - 30,
+			this->gm.player->getPos().y - this->gm.player->getSize()
 		);
 		this->UITex.draw(playerLife);
 		this->UITex.draw(playerBar);
@@ -265,14 +281,16 @@ void Window::getEvents()
 	sf::Event ev;
 	while (this->win.pollEvent(ev))
 	{
+		this->gm.processEvent(ev);
 		switch (ev.type)
 		{
 		case sf::Event::Closed:
 			this->close();
 			break;
 		case sf::Event::MouseMoved:
-			if (this->player != nullptr)
-				this->player->setMousePos(sf::Mouse::getPosition(this->win));
+			if (this->gm.player != nullptr)
+				this->gm.player->setMousePos(sf::Mouse::getPosition(this->win));
+			this->gm.setMousePos(sf::Mouse::getPosition(this->win));
 			break;
 		case sf::Event::KeyPressed:
 			this->registerKey(ev.key.code, true);
@@ -292,6 +310,7 @@ void Window::getEvents()
 		default:
 			break;
 		}
+		this->gm.processEvent(ev);
 	}
 }
 
@@ -326,8 +345,8 @@ void Window::registerKey(int code, bool state)
 	default:
 		break;
 	}
-	if (this->player != nullptr)
-		this->player->setKeys(this->keys);
+	if (this->gm.player != nullptr)
+		this->gm.player->setKeys(this->keys);
 }
 
 void Window::toogleFullscreen()
@@ -339,20 +358,27 @@ void Window::toogleFullscreen()
 
 void Window::kickPlayer()
 {
-	if (this->player == nullptr) return;
-	this->player->kick(this->dt);
+	if (this->gm.player == nullptr) return;
+	this->gm.player->kick(this->dt);
 	if (this->kickTimeout > 0.2) {
 		this->kickTimeout = 0;
-		this->pMan->addKickParticles(this->player->getPos());
+		this->pMan->addKickParticles(this->gm.player->getPos());
 	}
-	if (this->player->getLife() == 0)
-		this->win.close();
+	if (this->gm.player->getLife() == 0)
+	{
+		this->gm.player = nullptr;
+		this->enemies.clear();
+		this->gm.getSoundBoard()->stopMusic();
+		this->gm.getSoundBoard()->playCrush();
+		SceneGenerator::generateDeadScene(this->score);
+		this->score = 0;
+	}
 }
 
 Window::~Window()
 {
-	if (this->player != nullptr)
-		delete this->player;
+	if (this->gm.player != nullptr)
+		delete this->gm.player;
 	if (this->pMan != nullptr)
 		delete this->pMan;
 }

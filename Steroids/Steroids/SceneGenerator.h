@@ -4,7 +4,8 @@
 class SceneGenerator
 {
 public:
-	static void generateMenuScene(GameManager &gm);
-	static void generateInGameScene(GameManager& gm);
-	static void generateFileExplorerScene(GameManager& gm);
+	static void setGameManager(GameManager& gameManager);
+	static void generateMenuScene();
+	static void generateDeadScene(int score);
+	static void generateFileExplorerScene();
 };

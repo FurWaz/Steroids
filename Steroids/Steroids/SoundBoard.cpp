@@ -6,12 +6,28 @@ SoundBoard::SoundBoard()
 		this->crushSound.setBuffer(this->crushBuffer);
 	if (this->shootBuffer.loadFromFile("audio/Shoot.wav"))
 		this->shootSound.setBuffer(this->shootBuffer);
+	if (this->selectBuffer.loadFromFile("audio/Select.wav"))
+		this->selectSound.setBuffer(this->selectBuffer);
+	if (this->clickBuffer.loadFromFile("audio/Click.wav"))
+		this->clickSound.setBuffer(this->clickBuffer);
 	this->shootSound.setVolume(50);
+	this->selectSound.setVolume(50);
+	this->clickSound.setVolume(50);
 }
 
 void SoundBoard::playCrush()
 {
 	this->crushSound.play();
+}
+
+void SoundBoard::playSelect()
+{
+	this->selectSound.play();
+}
+
+void SoundBoard::playClick()
+{
+	this->clickSound.play();
 }
 
 void SoundBoard::playShoot()
@@ -35,6 +51,5 @@ void SoundBoard::setVolume(float volume)
 
 void SoundBoard::stopMusic()
 {
-	if (!this->music.getStatus() != sf::Sound::Stopped)
-		this->music.stop();
+	this->music.stop();
 }
