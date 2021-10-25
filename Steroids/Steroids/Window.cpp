@@ -21,8 +21,8 @@ void Window::init(sf::Vector2u size, std::string name)
 	this->win.setVerticalSyncEnabled(true);
 	this->win.setFramerateLimit(60);
 	this->enemyTimeout = 0;
-	this->shakeAmount = 0;
-	this->score = 0;
+	this->gm.shakeAmount = 0;
+	this->gm.score = 0;
 	this->shootTimeout = 0;
 	this->pMan = new ParticleManager(this->gm);
 
@@ -93,6 +93,7 @@ void Window::update()
 	if (this->dt > 1000) this->dt = 1;
 
 	this->pMan->update(this->dt);
+	this->gm.update(dt);
 	this->enemyTimeout += this->dt;
 	this->shootTimeout += this->dt;
 	this->kickTimeout += this->dt;
@@ -104,7 +105,7 @@ void Window::update()
 
 	// ingame-related updates (don't do them if there is no player)
 	if (this->gm.player == nullptr) return;
-	if (this->enemyTimeout > 0.3f)
+	if (this->enemyTimeout > (0.6f - this->gm.getSoundInfo()->getBassLevel()*0.5f))
 	{
 		this->enemyTimeout = 0;
 		addRandomEnemy();
@@ -131,6 +132,7 @@ void Window::update()
 	for (int i = 0; i < this->enemies.size(); i++)
 	{
 		Enemy* en = this->enemies[i];
+		en->setSpeedFactor(this->gm.getSoundInfo()->getBassLevel()*2 + 0.1);
 		en->setPlayerPos(this->gm.player->getPos());
 		en->update(this->dt);
 		if (this->gm.player->collides(en))
@@ -152,7 +154,7 @@ void Window::update()
 				delete this->gm.player->bullets[j];
 				this->enemies.erase(this->enemies.begin() + i);
 				this->gm.player->bullets.erase(this->gm.player->bullets.begin() + j);
-				score++;
+				this->gm.score++;
 				break;
 			}
 		}
@@ -192,30 +194,29 @@ void Window::render()
 	std::vector<Particle*> ps = this->pMan->getParticles();
 	for (int i = 0; i < ps.size(); i++)
 		this->renderTex.draw(ps[i]->draw(this->dt));
-	//BackParticle** bps = this->pMan->getBackParticles();
-	//for (int i = 0; i < this->pMan->NB_BACKPARTICLES; i++)
-	//	this->renderTex.draw(bps[i]->draw(this->dt));
-	for (int i =0; i < this->enemies.size(); i++)
-		this->renderTex.draw(this->enemies[i]->draw(this->dt));
 	if (this->gm.player != nullptr)
 	{
+		BackParticle** bps = this->pMan->getBackParticles();
+		for (int i = 0; i < this->pMan->NB_BACKPARTICLES; i++)
+			this->renderTex.draw(bps[i]->draw(this->dt));
+		for (int i = 0; i < this->enemies.size(); i++)
+			this->renderTex.draw(this->enemies[i]->draw(this->dt));
 		this->renderTex.draw(this->gm.player->draw(this->dt));
 		for (int i = 0; i < this->gm.player->bullets.size(); i++)
 			this->renderTex.draw(this->gm.player->bullets[i]->draw(this->dt));
 	}
 	this->renderTex.display();
 
-	// UI stuff (text and life bars)
-	sf::Text scoreText(
-		"score: "+std::to_string(this->score),
-		this->font, 30
-	);
-	scoreText.setPosition(sf::Vector2f(10, 10));
-	if (this->gm.player != nullptr)
-		this->UITex.draw(scoreText);
-
 	if (this->gm.player != nullptr)
 	{
+		// UI stuff (text and life bars)
+		sf::Text scoreText(
+			"score: " + std::to_string(this->gm.score),
+			this->font, 30
+		);
+		scoreText.setPosition(sf::Vector2f(10, 10));
+		this->UITex.draw(scoreText);
+
 		sf::RectangleShape playerLife;
 		playerLife.setSize(sf::Vector2f(60, 4));
 		playerLife.setOrigin(sf::Vector2f(30, 2));
@@ -244,28 +245,29 @@ void Window::render()
 	sf::Sprite UISprite(this->UITex.getTexture());
 	renderSprite.setOrigin(sf::Vector2f(this->win.getSize().x * 0.5f, this->win.getSize().y * 0.5f));
 	renderSprite.setPosition(sf::Vector2f(this->win.getSize().x * 0.5f, this->win.getSize().y * 0.5f));
-	renderSprite.setScale(sf::Vector2f(1.f + this->shakeAmount * 0.001f, 1.f + this->shakeAmount * 0.001f));
-	if (this->shakeAmount > 1)
-	{
-		this->shakeAmount--;
-		renderSprite.setPosition(
-			this->win.getSize().x * 0.5f + std::rand() % (int)(this->shakeAmount) - this->shakeAmount * 0.5f,
-			this->win.getSize().y * 0.5f + std::rand() % (int)(this->shakeAmount) - this->shakeAmount * 0.5f
-		);
-		UISprite.setPosition(
-			this->win.getSize().x * 0.5f + std::rand() % (int)(this->shakeAmount) - this->shakeAmount * 0.5f,
-			this->win.getSize().y * 0.5f + std::rand() % (int)(this->shakeAmount) - this->shakeAmount * 0.5f
-		);
-	}
 	UISprite.setOrigin(sf::Vector2f(this->win.getSize().x * 0.5f, this->win.getSize().y * 0.5f));
 	UISprite.setPosition(sf::Vector2f(this->win.getSize().x * 0.5f, this->win.getSize().y * 0.5f));
-	UISprite.setScale(sf::Vector2f(1.f + this->shakeAmount * 0.001f, 1.f + this->shakeAmount * 0.001f));
+	float screenScale = 1.f + this->gm.shakeAmount * 0.001f;
+	renderSprite.setScale(sf::Vector2f(screenScale, screenScale));
+	UISprite.setScale(sf::Vector2f(screenScale, screenScale));
+	if (this->gm.shakeAmount > 1)
+	{
+		this->gm.shakeAmount--;
+		renderSprite.setPosition(
+			this->win.getSize().x * 0.5f + std::rand() % (int)(this->gm.shakeAmount) - this->gm.shakeAmount * 0.5f,
+			this->win.getSize().y * 0.5f + std::rand() % (int)(this->gm.shakeAmount) - this->gm.shakeAmount * 0.5f
+		);
+		UISprite.setPosition(
+			this->win.getSize().x * 0.5f + std::rand() % (int)(this->gm.shakeAmount) - this->gm.shakeAmount * 0.5f,
+			this->win.getSize().y * 0.5f + std::rand() % (int)(this->gm.shakeAmount) - this->gm.shakeAmount * 0.5f
+		);
+	}
 
 	// apply shader effects and display
-	this->shader.setUniform("multiply", this->shakeAmount * 0.05f + 0.9f);
+	this->shader.setUniform("multiply", this->gm.shakeAmount * 0.05f + 0.9f);
 	this->shader.setUniform("texture_inverse", 0.003f);
 	this->win.draw(renderSprite, rs);
-	this->shader.setUniform("multiply", this->shakeAmount * 0.05f + 0.75f);
+	this->shader.setUniform("multiply", this->gm.shakeAmount * 0.05f + 0.75f);
 	this->shader.setUniform("texture_inverse", 0.002f);
 	this->win.draw(UISprite, rs);
 	this->win.display();
@@ -273,7 +275,7 @@ void Window::render()
 
 void Window::shake()
 {
-	this->shakeAmount = 15;
+	this->gm.shakeAmount = 20 * this->gm.getSoundInfo()->getBassLevel() + 1;
 }
 
 void Window::getEvents()
@@ -318,9 +320,6 @@ void Window::registerKey(int code, bool state)
 {
 	switch (code)
 	{
-	case sf::Keyboard::Escape:
-		this->win.close();
-		break;
 	case sf::Keyboard::F11:
 		if (state) this->toogleFullscreen();
 		break;
@@ -369,9 +368,8 @@ void Window::kickPlayer()
 		this->gm.player = nullptr;
 		this->enemies.clear();
 		this->gm.getSoundBoard()->stopMusic();
-		this->gm.getSoundBoard()->playCrush();
-		SceneGenerator::generateDeadScene(this->score);
-		this->score = 0;
+		SceneGenerator::generateDeadScene();
+		this->gm.score = 0;
 	}
 }
 

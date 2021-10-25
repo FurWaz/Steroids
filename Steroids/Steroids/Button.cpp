@@ -19,7 +19,6 @@ Button::Button(sf::Vector2i pos, sf::Vector2i size, std::string text):
 
 void Button::onHover(bool state)
 {
-    std::cout << "hovering button " << this->text->getString() << std::endl;
     this->hovered = state;
     this->color = state ? sf::Color::Red : sf::Color::Blue;
     this->rect.setOutlineColor(this->color);

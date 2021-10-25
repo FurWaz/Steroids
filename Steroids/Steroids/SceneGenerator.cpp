@@ -44,9 +44,10 @@ void SceneGenerator::generateMenuScene()
 	gm->addUIElement(*t);
 }
 
-void SceneGenerator::generateDeadScene(int score)
+void SceneGenerator::generateDeadScene()
 {
 	gm->clearUIElements();
+	gm->player = nullptr;
 	Button* b = new Button(
 		sf::Vector2i(gm->getScreenSize().x / 2, gm->getScreenSize().y * 0.75),
 		sf::Vector2i(200, 80),
@@ -58,13 +59,13 @@ void SceneGenerator::generateDeadScene(int score)
 	Text* t = new Text(
 		sf::Vector2i(gm->getScreenSize().x / 2, gm->getScreenSize().y * 0.3),
 		sf::Vector2i(gm->getScreenSize().x, 140),
-		"You're dead lmao", 120
+		"You're dead", 120
 	);
 	gm->addUIElement(*t);
 	t = new Text(
 		sf::Vector2i(gm->getScreenSize().x / 2, gm->getScreenSize().y * 0.3 + 70),
 		sf::Vector2i(gm->getScreenSize().x, 40),
-		"Score: "+std::to_string(score), 30
+		"Score: "+std::to_string(gm->score), 30
 	);
 	gm->addUIElement(*t);
 }
@@ -115,4 +116,30 @@ void SceneGenerator::generateFileExplorerScene()
 	}
 
 	gm->addUIElement(*list);
+}
+
+void SceneGenerator::generateWinScene()
+{
+	gm->clearUIElements();
+	gm->player = nullptr;
+	Button* b = new Button(
+		sf::Vector2i(gm->getScreenSize().x / 2, gm->getScreenSize().y * 0.75),
+		sf::Vector2i(200, 80),
+		"Menu"
+	);
+	b->setCallback(SceneGenerator::generateMenuScene);
+	gm->addUIElement(*b);
+
+	Text* t = new Text(
+		sf::Vector2i(gm->getScreenSize().x / 2, gm->getScreenSize().y * 0.3),
+		sf::Vector2i(gm->getScreenSize().x, 140),
+		"You made it !", 120
+	);
+	gm->addUIElement(*t);
+	t = new Text(
+		sf::Vector2i(gm->getScreenSize().x / 2, gm->getScreenSize().y * 0.3 + 70),
+		sf::Vector2i(gm->getScreenSize().x, 40),
+		"Score: " + std::to_string(gm->score), 30
+	);
+	gm->addUIElement(*t);
 }

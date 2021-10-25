@@ -30,7 +30,7 @@ void UIList::remElement(int index)
 
 void UIList::onScroll(float amount)
 {
-	this->scrollAmount += amount;
+	this->scrollAmount += amount * 10;
 	for (unsigned int i = 0; i < this->elements.size(); i++)
 	{
 		this->elements[i]->setPos(this->elements[i]->getPos() + sf::Vector2f(0, amount));

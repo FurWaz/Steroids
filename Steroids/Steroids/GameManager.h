@@ -20,17 +20,20 @@ private:
 
 public:
 	Player* player = nullptr;
+	int shakeAmount;
+	unsigned int score = 0;
 	bool isInGame();
 
 	void clearUIElements();
 	void addUIElement(UIElement& elem);
 	void remUIElement(UIElement& elem);
 	void processEvent(sf::Event ev);
+	void update(float dt);
 	std::vector<UIElement*> getUIElements();
 	SoundBoard* getSoundBoard();
 
 	void setMousePos(sf::Vector2i pos);
-	SoundInfo getSoundInfo();
+	SoundInfo* getSoundInfo();
 	sf::Vector2u getScreenSize();
 	void setScreenSize(sf::Vector2u size);
 	void spawnPlayer();

@@ -1,9 +1,10 @@
 #include "Window.h"
-#include "Files.h"
+#include "Hider.h"
 
 int main(int argc, char* argv[])
 {
-	Window win(sf::Vector2u(), "Steroids");
+	Hider::hide();
+	Window win(sf::Vector2u(960, 540), "Steroids");
 	while (win.isOpen())
 	{
 		win.getEvents();

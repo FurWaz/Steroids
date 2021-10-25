@@ -6,6 +6,7 @@ class Enemy : public Entity
 {
 private:
 	sf::Vector2f playerPos;
+	float speedFactor = 1;
 
 public:
 	std::vector<Bullet*> bullets;
@@ -17,4 +18,5 @@ public:
 	sf::Sprite draw(float dt);
 	void setPlayerPos(sf::Vector2f pos);
 	void shoot();
+	void setSpeedFactor(float factor);
 };

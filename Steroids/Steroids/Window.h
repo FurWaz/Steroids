@@ -19,7 +19,6 @@ private:
 	float enemyTimeout;
 	float shootTimeout;
 	float kickTimeout;
-	float shakeAmount;
 	float lastFPS = 60;
 	sf::Shader shader;
 	sf::RenderTexture renderTex;
@@ -29,7 +28,6 @@ private:
 	ParticleManager* pMan;
 
 	sf::Font font;
-	int score;
 	bool keys[4] = { false, false, false, false };
 	bool shootPressed = false;
 	void init(sf::Vector2u size, std::string name);

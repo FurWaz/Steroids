@@ -1,4 +1,5 @@
 #include "SoundBoard.h"
+#include <iostream>
 
 SoundBoard::SoundBoard()
 {
@@ -37,10 +38,11 @@ void SoundBoard::playShoot()
 
 bool SoundBoard::playMusic(std::string path)
 {
-	if (!this->music.openFromFile(path)) {
+	if (!this->music.openFromFile(path))
 		return false;
-	}
 	this->music.play();
+	if (!this->musicBuffer.loadFromFile(path))
+		return false;
 	return true;
 }
 
@@ -52,4 +54,9 @@ void SoundBoard::setVolume(float volume)
 void SoundBoard::stopMusic()
 {
 	this->music.stop();
+}
+
+sf::SoundBuffer SoundBoard::getMusicBuffer()
+{
+	return this->musicBuffer;
 }

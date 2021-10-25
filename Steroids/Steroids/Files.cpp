@@ -1,6 +1,5 @@
 #include "Files.h"
 #include <Windows.h>
-#include <iostream>
 
 std::string Files::getFileName(std::string str)
 {
@@ -22,7 +21,6 @@ Files::Files()
 	this->homeDirectory += buffer;
 	_dupenv_s(&buffer, &size, "HOMEPATH");
 	this->homeDirectory += buffer;
-	std::cout << "home directory: [" << this->homeDirectory << "]" << std::endl;
 }
 
 std::string Files::getHomeDirectory()
@@ -44,7 +42,6 @@ std::vector<std::string> Files::getFiles()
 {
 	WIN32_FIND_DATAA data;
 	HANDLE hFind = FindFirstFileA((this->startFolder + "\\*").c_str(), &data);
-	std::cout << "listing files of " << this->startFolder+"\\*" << std::endl;
 	std::vector<std::string> list;
 	if (hFind != INVALID_HANDLE_VALUE)
 	{
@@ -53,8 +50,7 @@ std::vector<std::string> Files::getFiles()
 			std::string name = data.cFileName;
 			if (name.size() < 4) continue;
 			std::string ext = name.substr(name.size() - 4, 4);
-			if (ext == ".wav" || ext == ".mp3" ||
-				ext == ".ogg" || ext == "flac")
+			if (ext == ".wav" || ext == ".ogg" || ext == "flac")
 				list.push_back(std::string(this->startFolder + "\\" + name));
 		} while (FindNextFileA(hFind, &data));
 		FindClose(hFind);

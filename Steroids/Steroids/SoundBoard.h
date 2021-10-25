@@ -13,6 +13,7 @@ private:
 	sf::Sound selectSound;
 	sf::Sound clickSound;
 	sf::Music music;
+	sf::SoundBuffer musicBuffer;
 
 public:
 	SoundBoard();
@@ -23,4 +24,5 @@ public:
 	bool playMusic(std::string path);
 	void setVolume(float volume);
 	void stopMusic();
+	sf::SoundBuffer getMusicBuffer();
 };

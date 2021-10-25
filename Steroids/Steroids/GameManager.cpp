@@ -8,6 +8,8 @@ bool GameManager::isInGame()
 void GameManager::clearUIElements()
 {
 	this->UIelems.clear();
+	this->shakeAmount = 20;
+	this->sb.playCrush();
 }
 
 void GameManager::addUIElement(UIElement& elem)
@@ -54,9 +56,9 @@ std::vector<UIElement*> GameManager::getUIElements()
 	return this->UIelems;
 }
 
-SoundInfo GameManager::getSoundInfo()
+SoundInfo* GameManager::getSoundInfo()
 {
-	return this->soundInfos;
+	return &this->soundInfos;
 }
 
 sf::Vector2u GameManager::getScreenSize()
@@ -191,4 +193,9 @@ void GameManager::spawnPlayer()
 		500.f, 0.f, 50.f
 	);
 	this->inGame = true;
+}
+
+void GameManager::update(float dt)
+{
+	this->soundInfos.update(dt);
 }

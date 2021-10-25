@@ -74,7 +74,8 @@ void ParticleManager::update(float dt)
 	}
 
 	// update background particles
-	float bLvl = this->gm->getSoundInfo().getBassLevel();
+	float bLvl = this->gm->getSoundInfo()->getBassLevel();
+	float lvl = fmin(bLvl + 0.3, 1);
 	sf::Vector2u size = this->gm->getScreenSize();
 	for (int i = 0; i < this->NB_BACKPARTICLES; i++)
 	{
@@ -85,7 +86,7 @@ void ParticleManager::update(float dt)
 		float dx = size.x/2 - pos.x;
 		float dy = size.y/2 - pos.y;
 		float distFromCenter = std::sqrt(dx*dx + dy*dy);
-		p->setAlpha(bLvl * 0.7 + 0.3);
+		p->setAlpha(lvl);
 		p->setScaleFactor(0.5 + bLvl * 0.2 + distFromCenter*2/size.x);
 		p->update(dt);
 
@@ -93,7 +94,7 @@ void ParticleManager::update(float dt)
 		{
 			delete this->backParticles[i];
 			this->backParticles[i] = nullptr;
-			//this->addBackParticle(i);
+			this->addBackParticle(i);
 		}
 	}
 }

@@ -23,7 +23,7 @@ void Enemy::update(float dt)
 	) - 1.5707963);
 
 	this->tarVel = this->dir;
-	this->tarVel *= this->speed;
+	this->tarVel *= this->speed * this->speedFactor;
 	this->curVel += (this->tarVel - this->curVel) * (dt / this->smoothness);
 	float dx = this->playerPos.x - this->pos.x;
 	float dy = this->playerPos.y - this->pos.y;
@@ -49,4 +49,9 @@ sf::Sprite Enemy::draw(float dt)
 void Enemy::shoot()
 {
 	this->bullets.push_back(new Bullet(this->pos + this->dir * (this->size / 2), this->curVel, 350.f, this->direction, 10.f));
+}
+
+void Enemy::setSpeedFactor(float factor)
+{
+	this->speedFactor = factor;
 }
