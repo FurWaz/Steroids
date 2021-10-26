@@ -365,7 +365,12 @@ void Window::kickPlayer()
 	}
 	if (this->gm.player->getLife() == 0)
 	{
-		this->gm.player = nullptr;
+		for (unsigned int i = 0; i < this->enemies.size(); i++)
+		{
+
+			this->pMan->addCrushParticles(this->enemies[i]->getPos());
+			delete this->enemies[i];
+		}
 		this->enemies.clear();
 		this->gm.getSoundBoard()->stopMusic();
 		SceneGenerator::generateDeadScene();

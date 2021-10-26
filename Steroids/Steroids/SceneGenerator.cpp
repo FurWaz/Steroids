@@ -47,7 +47,6 @@ void SceneGenerator::generateMenuScene()
 void SceneGenerator::generateDeadScene()
 {
 	gm->clearUIElements();
-	gm->player = nullptr;
 	Button* b = new Button(
 		sf::Vector2i(gm->getScreenSize().x / 2, gm->getScreenSize().y * 0.75),
 		sf::Vector2i(200, 80),
@@ -68,6 +67,8 @@ void SceneGenerator::generateDeadScene()
 		"Score: "+std::to_string(gm->score), 30
 	);
 	gm->addUIElement(*t);
+	gm->getSoundInfo()->stopSound();
+	gm->player = nullptr;
 }
 
 void SceneGenerator::generateFileExplorerScene()
@@ -85,7 +86,7 @@ void SceneGenerator::generateFileExplorerScene()
 	t = new Text(
 		sf::Vector2i(gm->getScreenSize().x / 2, 70),
 		sf::Vector2i(gm->getScreenSize().x, 30),
-		"Put your songs in "+f.getStartFolder(), 20
+		"Put your .wav songs in "+f.getStartFolder(), 20
 	);
 	gm->addUIElement(*t);
 
@@ -121,7 +122,6 @@ void SceneGenerator::generateFileExplorerScene()
 void SceneGenerator::generateWinScene()
 {
 	gm->clearUIElements();
-	gm->player = nullptr;
 	Button* b = new Button(
 		sf::Vector2i(gm->getScreenSize().x / 2, gm->getScreenSize().y * 0.75),
 		sf::Vector2i(200, 80),
@@ -142,4 +142,11 @@ void SceneGenerator::generateWinScene()
 		"Score: " + std::to_string(gm->score), 30
 	);
 	gm->addUIElement(*t);
+	t = new Text(
+		sf::Vector2i(gm->getScreenSize().x / 2, gm->getScreenSize().y * 0.3 + 100),
+		sf::Vector2i(gm->getScreenSize().x, 40),
+		"Life: " + std::to_string(gm->player->getLife() * 100 / gm->player->getMaxLife()) + "%", 30
+	);
+	gm->addUIElement(*t);
+	gm->player = nullptr;
 }

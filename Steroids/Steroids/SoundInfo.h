@@ -21,6 +21,7 @@ public:
 	void setSoundProgress(float sec);
 
 	void setSoundBuffer(sf::SoundBuffer buf);
+	void stopSound();
 
 
 	template<class T> void setCallback(void (T::* callback)(), T* c)

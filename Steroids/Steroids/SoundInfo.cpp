@@ -11,11 +11,14 @@ void SoundInfo::update(float dt)
 	unsigned long startIndex = this->time * this->sampleRate * this->channelCount;
 	unsigned long endIndex = newTime * this->sampleRate * this->channelCount;
 
-	if (endIndex >= this->len)
+	if (endIndex >= this->len || startIndex >= this->len)
 	{
-		endIndex = this->len - 1;
+		endIndex = 0;
+		startIndex = 0;
 		this->sampleRate = 0;
 		this->channelCount = 0;
+		if (this->len > 0)
+			delete this->buffer;
 		if (this->cont != nullptr)
 			this->cont->func();
 	}
@@ -32,10 +35,13 @@ float SoundInfo::getBassLevel()
 	return this->bassLevel;
 }
 
+void SoundInfo::stopSound()
+{
+	this->time = (this->len / this->sampleRate); // just setting the time well after the song's end
+}
+
 void SoundInfo::setSoundBuffer(sf::SoundBuffer buf)
 {
-	if (this->len > 0)
-		delete this->buffer;
 	this->len = buf.getSampleCount();
 	this->sampleRate = buf.getSampleRate();
 	this->channelCount = buf.getChannelCount();

@@ -50,7 +50,7 @@ std::vector<std::string> Files::getFiles()
 			std::string name = data.cFileName;
 			if (name.size() < 4) continue;
 			std::string ext = name.substr(name.size() - 4, 4);
-			if (ext == ".wav" || ext == ".ogg" || ext == "flac")
+			if (ext == ".wav")
 				list.push_back(std::string(this->startFolder + "\\" + name));
 		} while (FindNextFileA(hFind, &data));
 		FindClose(hFind);
